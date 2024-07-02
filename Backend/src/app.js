@@ -10,4 +10,18 @@ app.use(express.static("public"));
 app.use(cookieParser());
 
 
+// routes import
+import userRouter from './routes/user.route.js';
+import testRouter from './routes/test.route.js';
+import feedbackRouter from './routes/feedback.route.js';
+import healthCheckRouter from './routes/healthCheck.route.js';
+
+
+// routes declaration/mount
+app.use('/api/v1/users', userRouter);
+app.use('/api/v1/tests', testRouter);
+app.use('/api/v1/feedbacks', feedbackRouter);
+app.use('/api/v1/healthCheck', healthCheckRouter);
+
+
 export { app };
