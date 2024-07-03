@@ -14,7 +14,7 @@ const QuizBuilder: React.FC = () => {
 			options: [
 				{
 					id: 0,
-					text: "Option 1",
+					text: "",
 					isCorrect: false,
 				},
 			],
@@ -30,10 +30,12 @@ const QuizBuilder: React.FC = () => {
 	};
 
 	return (
-		<div className="p-6">
-			<h1 className="text-2xl font-bold mb-4">Create a Quiz</h1>
-			<div className="mb-4">
-				<label className="block text-sm font-medium text-gray-700">
+		<div className="p-6 max-w-4xl mx-auto bg-white rounded-lg shadow-md">
+			<h1 className="text-3xl font-bold mb-6 text-center text-gray-800">
+				Create a Quiz
+			</h1>
+			<div className="mb-6">
+				<label className="block text-sm font-medium text-gray-700 mb-2">
 					Test Description
 				</label>
 				<input
@@ -41,42 +43,44 @@ const QuizBuilder: React.FC = () => {
 					value={testDescription}
 					onChange={(e) => setTestDescription(e.target.value)}
 					placeholder="Untitled Test"
-					className="mt-1 p-2 block w-full border rounded-md"
+					className="mt-1 p-3 block w-full border rounded-md shadow-sm focus:ring focus:ring-green-300"
 				/>
 			</div>
-			<div className="mb-4">
-				<label className="block text-sm font-medium text-gray-700">
+			<div className="mb-6">
+				<label className="block text-sm font-medium text-gray-700 mb-2">
 					Duration (in minutes)
 				</label>
 				<input
 					type="number"
 					min={1}
-					className="mt-1 p-2 block w-full border rounded-md"
+					className="mt-1 p-3 block w-full border rounded-md shadow-sm focus:ring focus:ring-green-300"
 					value={duration}
 					onChange={(e) => setDuration(e.target.value)}
 				/>
 			</div>
 
-			{questions.map((question) => {
-				return (
-					<QuestionForm
-						key={question.id}
-						question={question}
-						setQuestions={setQuestions}
-					/>
-				);
-			})}
+			{questions.map((question) => (
+				<QuestionForm
+					key={question.id}
+					question={question}
+					setQuestions={setQuestions}
+				/>
+			))}
 
-			<button
-				className="bg-green-500 text-white p-2 rounded-md mb-4"
-				onClick={addQuestionHandler}>
-				Add Question
-			</button>
-			<button
-				className="bg-green-500 text-white p-2 rounded-md mb-4"
-				onClick={saveTest}>
-				Save Test
-			</button>
+			<div className="flex justify-between mt-6">
+				<button
+					className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-md shadow-md transition duration-300"
+					onClick={addQuestionHandler}>
+					Add Question
+				</button>
+				{questions?.length > 0 && (
+					<button
+						className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-md shadow-md transition duration-300"
+						onClick={saveTest}>
+						Save Test
+					</button>
+				)}
+			</div>
 		</div>
 	);
 };

@@ -2,10 +2,10 @@ import { Dispatch, SetStateAction } from "react";
 import type { Option, Question } from "../model/Question.model";
 
 const useQuestion = (setQuestions: Dispatch<SetStateAction<Question[]>>) => {
-	const questionTextChangeHandler = (text: string, id: number) => {
+	const questionTextChangeHandler = (Qid: number, text: string) => {
 		setQuestions((prevQuestion) =>
 			prevQuestion.map((question: Question) => {
-				if (question.id === id) {
+				if (question.id === Qid) {
 					return {
 						...question,
 						text: text,
@@ -16,13 +16,13 @@ const useQuestion = (setQuestions: Dispatch<SetStateAction<Question[]>>) => {
 		);
 	};
 
-	const questionTypeChangeHandler = (text: string, id: number) => {
+	const questionTypeChangeHandler = (Qid: number, text: string) => {
 		setQuestions((prevQuestion) =>
 			prevQuestion.map((question: Question) => {
-				if (question.id === id) {
+				if (question.id === Qid) {
 					return {
 						...question,
-						isMultipleCorrect: text === "Mutiple Correct",
+						isMultipleCorrect: text === "Multiple Correct",
 					};
 				}
 				return question;
@@ -30,17 +30,17 @@ const useQuestion = (setQuestions: Dispatch<SetStateAction<Question[]>>) => {
 		);
 	};
 
-	const addOptionHandler = (id: number) => {
+	const addOptionHandler = (Qid: number) => {
 		setQuestions((prevQuestion) =>
 			prevQuestion.map((question: Question) => {
-				if (question.id === id) {
+				if (question.id === Qid) {
 					return {
 						...question,
 						options: [
 							...question.options,
 							{
 								id: question.options.length,
-								text: `Option ${question.options.length}`,
+								text: "",
 								isCorrect: false,
 							},
 						],
@@ -121,13 +121,39 @@ const useQuestion = (setQuestions: Dispatch<SetStateAction<Question[]>>) => {
 		);
 	};
 
-	const answerKeyModeHandler = (Qid: number) => {
+	const optionTextChangeHandler = (
+		Qid: number,
+		optionId: number,
+		text: string
+	) => {
 		setQuestions((prevQuestion) =>
 			prevQuestion.map((question: Question) => {
 				if (question.id === Qid) {
 					return {
 						...question,
-						isAnswerKeyMode: !question.isAnswerKeyMode,
+						options: question.options.map((option: Option) => {
+							if (option.id === optionId) {
+								return {
+									...option,
+									text: text,
+								};
+							}
+							return option;
+						}),
+					};
+				}
+				return question;
+			})
+		);
+	};
+
+	const answerKeyModeHandler = (Qid: number, answerKeyMode: boolean) => {
+		setQuestions((prevQuestion) =>
+			prevQuestion.map((question: Question) => {
+				if (question.id === Qid) {
+					return {
+						...question,
+						isAnswerKeyMode: answerKeyMode,
 					};
 				}
 				return question;
@@ -156,6 +182,7 @@ const useQuestion = (setQuestions: Dispatch<SetStateAction<Question[]>>) => {
 		addOptionHandler,
 		deleteOptionHandler,
 		optionClickHandler,
+		optionTextChangeHandler,
 		answerKeyModeHandler,
 		deleteQuestionHandler,
 	};

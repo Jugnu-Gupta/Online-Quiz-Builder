@@ -15,93 +15,117 @@ const QuestionForm = ({ question, setQuestions }: QuestionFormProps) => {
 		addOptionHandler,
 		deleteOptionHandler,
 		optionClickHandler,
+		optionTextChangeHandler,
 		answerKeyModeHandler,
 		deleteQuestionHandler,
 	} = useQuestion(setQuestions);
 
 	return (
-		<div>
-			<div className="mb-4 flex">
+		<div className="mb-8 p-6 bg-gray-100 rounded-lg shadow-md">
+			<div className="mb-4 flex items-center gap-4">
 				<input
-					className="mt-1 p-2 block w-full border rounded-md"
+					className="flex-1 mt-1 p-3 block border rounded-md shadow-sm focus:ring focus:ring-green-300"
 					value={question.text}
 					placeholder="Question"
+					required
 					onChange={(e) =>
-						questionTextChangeHandler(e.target.value, question.id)
+						questionTextChangeHandler(question.id, e.target.value)
 					}
 				/>
 				<select
+					className="mt-1 p-3 border rounded-md shadow-sm focus:ring focus:ring-green-300"
 					name="question Type"
-					id=""
 					onChange={(e) =>
-						questionTypeChangeHandler(e.target.value, question.id)
+						questionTypeChangeHandler(
+							question.id,
+							e.target.value as
+								| "Single Correct"
+								| "Multiple Correct"
+						)
 					}
 					value={
 						question.isMultipleCorrect
-							? "Mutiple Correct"
+							? "Multiple Correct"
 							: "Single Correct"
 					}>
-					<option value="Mutiple Correct">Mutiple Correct</option>
+					<option value="Multiple Correct">Multiple Correct</option>
 					<option value="Single Correct">Single Correct</option>
 				</select>
 			</div>
-			<div className="flex-col gap-2">
-				{question.options.map((option: Option) => {
-					return (
-						<div key={option.id} className="flex justify-between">
-							{!question.isAnswerKeyMode ? (
-								<>
-									<input
-										type="text"
-										value={option.text}
-										required
-									/>
-									<button
-										onClick={() =>
-											deleteOptionHandler(
-												question.id,
-												option.id
-											)
-										}>
-										<RxCross2 />
-									</button>
-								</>
-							) : (
-								<p
-									className="w-full h-full"
+			<div className="flex flex-col gap-2 mb-4">
+				{question.options.map((option: Option) => (
+					<div
+						key={option.id}
+						className="flex justify-between items-center bg-white p-3 rounded-md shadow-sm">
+						{!question.isAnswerKeyMode ? (
+							<>
+								<input
+									className="flex-1 p-2 border rounded-md"
+									type="text"
+									value={option.text}
+									required
+									placeholder={`Option ${option.id}`}
+									onChange={(e) =>
+										optionTextChangeHandler(
+											question.id,
+											option.id,
+											e.target.value
+										)
+									}
+								/>
+								<button
+									className="ml-2 text-red-500 hover:text-red-700 transition duration-300"
 									onClick={() =>
-										optionClickHandler(
+										deleteOptionHandler(
 											question.id,
 											option.id
 										)
 									}>
-									{option.text}
-								</p>
-							)}
-						</div>
-					);
-				})}
-				{!question.isAnswerKeyMode ? (
-					<button onClick={() => addOptionHandler(question.id)}>
+									<RxCross2 />
+								</button>
+							</>
+						) : (
+							<p
+								className={`flex-1 p-2 cursor-pointer ${
+									option.isCorrect ? "bg-green-100" : ""
+								}`}
+								onClick={() =>
+									optionClickHandler(question.id, option.id)
+								}>
+								{option.text}
+							</p>
+						)}
+					</div>
+				))}
+				{!question.isAnswerKeyMode && (
+					<button
+						className="mt-2 p-2 bg-blue-500 text-white rounded-md shadow-md hover:bg-blue-600 transition duration-300"
+						onClick={() => addOptionHandler(question.id)}>
 						Add Option
 					</button>
-				) : null}
+				)}
 			</div>
-			<div className="flex justify-between">
+			<div className="flex justify-between items-center">
 				{question.isAnswerKeyMode ? (
 					<>
 						<button
-							onClick={() => answerKeyModeHandler(question.id)}>
-							Answer Key
+							className="p-2 bg-yellow-500 text-white rounded-md shadow-md hover:bg-yellow-600 transition duration-300"
+							onClick={() =>
+								answerKeyModeHandler(question.id, false)
+							}>
+							Done
 						</button>
 						<button
+							className="p-2 bg-red-500 text-white rounded-md shadow-md hover:bg-red-600 transition duration-300"
 							onClick={() => deleteQuestionHandler(question.id)}>
 							Delete Question
 						</button>
 					</>
 				) : (
-					<button onClick={() => answerKeyModeHandler(question.id)}>
-						Done
+					<button
+						className="p-2 bg-green-500 text-white rounded-md shadow-md hover:bg-green-600 transition duration-300"
+						onClick={() => answerKeyModeHandler(question.id, true)}>
+						Answer Key
 					</button>
 				)}
 			</div>
