@@ -2,7 +2,11 @@ import mongoose from "mongoose";
 
 const questionSchema = new mongoose.Schema(
     {
-        question: {
+        QNo: {
+            type: Number,
+            required: true,
+        },
+        description: {
             type: String,
             required: true,
         },
