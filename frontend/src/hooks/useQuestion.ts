@@ -1,5 +1,6 @@
 import { Dispatch, SetStateAction } from "react";
 import type { Option, Question } from "../model/Question.model";
+import toast from "react-hot-toast";
 
 const useQuestion = (setQuestions: Dispatch<SetStateAction<Question[]>>) => {
 	const questionTextChangeHandler = (Qid: number, text: string) => {
@@ -148,17 +149,31 @@ const useQuestion = (setQuestions: Dispatch<SetStateAction<Question[]>>) => {
 	};
 
 	const answerKeyModeHandler = (Qid: number, answerKeyMode: boolean) => {
-		setQuestions((prevQuestion) =>
-			prevQuestion.map((question: Question) => {
-				if (question.id === Qid) {
-					return {
-						...question,
-						isAnswerKeyMode: answerKeyMode,
-					};
-				}
-				return question;
-			})
-		);
+		setQuestions((prevQuestions) => {
+			const curQuestion = prevQuestions.find(
+				(question) => question.id === Qid
+			);
+
+			if (!curQuestion) return prevQuestions;
+			if (curQuestion.options.length === 0) {
+				toast.error("Please add options first");
+				return prevQuestions;
+			} else if (curQuestion.text === "") {
+				toast.error("Please add question description first");
+				return prevQuestions;
+			} else if (
+				curQuestion.options.some((option: Option) => option.text === "")
+			) {
+				toast.error("Please add text to all options first");
+				return prevQuestions;
+			}
+
+			return prevQuestions.map((question) =>
+				question.id === Qid
+					? { ...question, isAnswerKeyMode: answerKeyMode }
+					: question
+			);
+		});
 	};
 
 	const deleteQuestionHandler = (Qid: number) => {

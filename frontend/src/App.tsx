@@ -6,6 +6,7 @@ import Register from "./pages/Register/Register";
 import Test from "./pages/Test/Test";
 import Feedbacks from "./pages/Feedback/Feedbacks";
 import QuizBuilder from "./pages/QuizBuilder/QuizBuilder";
+import { Toaster } from "react-hot-toast";
 
 const routes = createBrowserRouter([
 	{
@@ -41,6 +42,7 @@ const routes = createBrowserRouter([
 function App() {
 	return (
 		<Provider store={store}>
+			<Toaster />
 			<RouterProvider router={routes} />
 		</Provider>
 	);

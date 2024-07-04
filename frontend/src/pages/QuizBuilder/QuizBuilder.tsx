@@ -1,14 +1,15 @@
 import React, { useState } from "react";
 import QuestionForm from "./QuestionForm";
-import type { Question } from "../../model/Question.model";
+import type { Question as QuestionType } from "../../model/Question.model";
+import toast from "react-hot-toast";
 
 const QuizBuilder: React.FC = () => {
-	const [questions, setQuestions] = useState<Question[]>([]);
+	const [questions, setQuestions] = useState<QuestionType[]>([]);
 	const [testDescription, setTestDescription] = useState("");
 	const [duration, setDuration] = useState<number | string>("");
 
 	const addQuestionHandler = () => {
-		const newQuestion: Question = {
+		const newQuestion: QuestionType = {
 			id: questions.length,
 			text: "",
 			options: [
@@ -25,6 +26,23 @@ const QuizBuilder: React.FC = () => {
 	};
 
 	const saveTest = () => {
+		questions.forEach((question) => {
+			if (question.text === "") {
+				toast.error("Please fill all the questions description");
+				return;
+			} else if (question.options.length < 2) {
+				toast.error("Please add atleast 2 options for each question");
+				return;
+			}
+			if (!question.options.some((option) => option.isCorrect === true)) {
+				toast.error(
+					`Please provide answer key for each question i.e. ${
+						question.id + 1
+					}`
+				);
+				return;
+			}
+		});
 		// Handle test saving logic here
 		console.log("Test saved", { testDescription, duration, questions });
 	};
