@@ -12,7 +12,7 @@ const Login: React.FC = () => {
 						Welcome Back
 					</h1>
 					<button
-						onClick={() => navigate("/register")}
+						onClick={() => navigate("/login")}
 						className="bg-white px-4 py-2 tracking-wide font-medium rounded-lg text-xs">
 						Sign In
 					</button>

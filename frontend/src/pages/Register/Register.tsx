@@ -19,7 +19,7 @@ const Register: React.FC = () => {
 						New Here?
 					</h1>
 					<button
-						onClick={() => navigate("/login")}
+						onClick={() => navigate("/register")}
 						className="bg-white px-4 py-2 tracking-wide font-medium rounded-lg text-xs">
 						Sign Up
 					</button>

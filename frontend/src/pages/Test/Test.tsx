@@ -1,32 +1,120 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaLightbulb } from "react-icons/fa";
+import { useParams } from "react-router-dom";
+import { TestType } from "../../model/test.model";
+import axio from "axios";
+import toast from "react-hot-toast";
+
+// interface RouteParams {
+// 	testId: string;
+// }
 
 interface Option {
-	text: string;
+	option: string;
+	isCorrect: boolean;
 }
 
-interface Question {
-	question: string;
+interface QuestionType {
+	QNo: number;
+	description: string;
 	options: Option[];
-	multipleCorrect: boolean;
+	isMultipleCorrect: boolean;
+	testId: string;
 }
 
-const questions: Question[] = [
+interface QuestionAndAnsType {
+	questionId: string;
+	selectedOption: string[];
+}
+
+interface TestType {
+	name: string;
+	ownerId: string;
+	questions: QuestionType[] | QuestionAndAnsType[];
+	duration: number;
+}
+
+// const questionSchema = new mongoose.Schema(
+//     {
+//         QNo: {
+//             type: Number,
+//             required: true,
+//         },
+//         description: {
+//             type: String,
+//             required: true,
+//         },
+//         isMultipleCorrect: {
+//             type: Boolean,
+//             required: true,
+//         },
+//         options: [
+//             {
+//                 option: {
+//                     type: String,
+//                     required: true,
+//                     unique: true,
+//                 },
+//                 isCorrect: {
+//                     type: Boolean,
+//                     required: true,
+//                 },
+//             },
+//         ],
+//         testId: {
+//             type: mongoose.Schema.Types.ObjectId,
+//             ref: "Test",
+//         },
+//     },
+//     { timestamps: true }
+// );
+// const testSchema = new mongoose.Schema(
+//     {
+//         name: {
+//             type: String,
+//             required: true,
+//         },
+//         ownerId: {
+//             type: mongoose.Schema.Types.ObjectId,
+//             ref: "User",
+//         },
+//         questions: [
+//             {
+//                 type: mongoose.Schema.Types.ObjectId,
+//                 ref: "Question",
+//             },
+//         ],
+//         duration: {
+//             type: Number,
+//             required: true,
+//         },
+//     },
+//     { timestamps: true }
+// );
+
+const questions: QuestionType[] = [
 	{
-		question: "Google was founded in what year?",
+		_id: "1",
+		description: "Google was founded in what year?",
 		options: [
-			{ text: "1997" },
-			{ text: "1998" },
-			{ text: "1999" },
-			{ text: "2000" },
+			{ option: "1997", isCorrect: false },
+			{ option: "1998", isCorrect: false },
+			{ option: "1999", isCorrect: false },
+			{ option: "2000", isCorrect: true },
 		],
-		multipleCorrect: false,
+		isMultipleCorrect: false,
 	},
 	{
-		question: "Select the prime numbers:",
-		options: [{ text: "2" }, { text: "3" }, { text: "4" }, { text: "5" }],
-		multipleCorrect: true,
+		_id: "2",
+		description: "Select the prime numbers:",
+		options: [
+			{ option: "2", isCorrect: true },
+			{ option: "3", isCorrect: true },
+			{ option: "4", isCorrect: false },
+			{ option: "5", isCorrect: true },
+		],
+		isMultipleCorrect: true,
 	},
 	// Add more questions here
 ];
@@ -34,10 +122,33 @@ const questions: Question[] = [
 const QuizPage: React.FC = () => {
 	const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
 	const [timeLeft, setTimeLeft] = useState<number>(300); // 5 minutes in seconds
-	const [selectedAnswers, setSelectedAnswers] = useState<Array<string[]>>(
-		questions.map(() => [])
-	);
+	const [selectedAnswers, setSelectedAnswers] = useState<Array<string[]>>([
+		[],
+	]);
+	const [test, setTest] = useState<TestType>();
+
+	// const [feedback, setFeedback] = useState<TestType | null>(null);
+	const { testId } = useParams();
 	const navigate = useNavigate();
+
+	useEffect(() => {
+		axio.get(`http://localhost:4000/api/v1/tests/${testId}`)
+			.then((res) => {
+				if (res.status === 200) {
+					setTest(res.data);
+					setTimeLeft(res.data.duration);
+				} else {
+					toast.error("Failed to fetch test data");
+				}
+				console.log(res);
+			})
+			.catch((err) => {
+				console.log(err);
+				toast.error("Failed to fetch test data");
+			});
+
+		console.log(test);
+	}, []);
 
 	useEffect(() => {
 		const timer = setInterval(() => {
@@ -62,8 +173,8 @@ const QuizPage: React.FC = () => {
 	};
 
 	const handleOptionClick = (option: string) => {
-		const updatedAnswers = [...selectedAnswers];
-		if (questions[currentQuestionIndex].multipleCorrect) {
+		const updatedAnswers = selectedAnswers || [];
+		if (questions[currentQuestionIndex].isMultipleCorrect) {
 			updatedAnswers[currentQuestionIndex] = toggleOption(
 				updatedAnswers[currentQuestionIndex],
 				option
@@ -86,14 +197,19 @@ const QuizPage: React.FC = () => {
 		}
 	};
 
-	const saveAnswers = () => {
+	const saveAnswers = async () => {
+		// set data in feedback;
+		// and post it.
+
 		console.log("Saving answers:", selectedAnswers);
+
 		// Add logic to save answers (e.g., send them to a server or save them to local storage)
 	};
 
 	const handleQuit = () => {
 		saveAnswers();
-		navigate("/"); // Redirect to home or a quit confirmation page
+
+		navigate("/feedbacks"); // Redirect to feeback page.
 	};
 
 	const formatTime = (seconds: number): string => {
@@ -118,20 +234,20 @@ const QuizPage: React.FC = () => {
 				</div>
 			</div>
 			<div className="mb-4">
-				<h2>{currentQuestion.question}</h2>
+				<h2>{currentQuestion.description}</h2>
 				<div className="flex flex-wrap justify-between">
 					{currentQuestion.options.map((option, index) => (
 						<button
 							key={index}
 							className={`bg-blue-500 text-white border-none py-3 px-6 rounded-md m-2 cursor-pointer w-48 hover:bg-blue-700 ${
 								selectedAnswers[currentQuestionIndex].includes(
-									option.text
+									option.option
 								)
 									? "bg-blue-700"
 									: ""
 							}`}
-							onClick={() => handleOptionClick(option.text)}>
-							{option.text}
+							onClick={() => handleOptionClick(option.option)}>
+							{option.option}
 						</button>
 					))}
 				</div>

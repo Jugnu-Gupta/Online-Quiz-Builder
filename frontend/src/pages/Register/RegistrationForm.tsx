@@ -1,18 +1,34 @@
 import React from "react";
 import { useFormik } from "formik";
+import axios from "axios";
+import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 
 const RegistrationForm: React.FC = () => {
-	const { values, errors, touched, handleChange, handleSubmit, handleBlur } =
-		useFormik({
-			initialValues: {
-				email: "",
-				password: "",
-			},
-			// validationSchema: {},
-			onSubmit: (values) => {
-				console.log(values);
-			},
-		});
+	const navigate = useNavigate();
+	const { values, handleChange, handleSubmit, handleBlur } = useFormik({
+		initialValues: {
+			email: "",
+			password: "",
+		},
+		// validationSchema: {},
+		onSubmit: async (values) => {
+			const res = await axios.post(
+				"http://localhost:4000/api/v1/login",
+				values
+			);
+
+			if (res.status === 200) {
+				toast.success("User registered successfully");
+				localStorage.setItem("email", values.email);
+				localStorage.setItem("fullName", res.data?.fullName);
+				navigate("/");
+			} else {
+				toast.error("User registration failed");
+			}
+			console.log(res);
+		},
+	});
 	return (
 		<form
 			onSubmit={handleSubmit}
