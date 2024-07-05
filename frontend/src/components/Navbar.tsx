@@ -1,25 +1,25 @@
-import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import toast from "react-hot-toast";
+import { BASE_URL } from "../contants";
 
 function Navbar() {
-	let email = "";
-	let fullName = "";
-
-	useEffect(() => {
-		email = localStorage.getItem("email");
-		fullName = localStorage.getItem("fullName");
-	}, []);
+	const fullName = localStorage.getItem("fullName");
 
 	const logoutHandler = async () => {
-		const res = await axios.post(
-			"http://localhost:4000/api/v1/users/logout"
-		);
+		const token = localStorage.getItem("token");
+		const res = await axios.post(`${BASE_URL}/api/v1/users/logout`, {
+			headers: {
+				"Content-Type": "application/json",
+				Authorization: `Bearer ${token}`,
+			},
+		});
 		if (res.status === 200) {
 			console.log("Logged out successfully");
 			localStorage.removeItem("fullName");
 			localStorage.removeItem("email");
+			localStorage.removeItem("token");
+			localStorage.removeItem("login");
 		} else {
 			toast.error("Error logging out");
 		}
@@ -46,7 +46,7 @@ function Navbar() {
 							</button>
 						</Link>
 						<button className="truncate max-w-20 text-white pl-4">
-							{fullName}jbkjbjkjbaskjcbkj
+							{fullName}
 						</button>
 					</div>
 				</nav>

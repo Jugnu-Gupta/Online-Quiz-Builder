@@ -2,7 +2,6 @@ import React from "react";
 import { Doughnut } from "react-chartjs-2";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 
-// Register necessary Chart.js components
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 type Feedback = {
@@ -10,7 +9,6 @@ type Feedback = {
 	score: number;
 	correctAnswers: number;
 	incorrectAnswers: number;
-	unattemptedQuestions: number;
 	totalQuestions: number;
 	duration: string;
 };
@@ -39,6 +37,11 @@ const options = {
 };
 
 const FeedbackCard: React.FC<{ feedback: Feedback }> = ({ feedback }) => {
+	const unattemptedQuestions: number =
+		feedback.totalQuestions -
+		feedback.correctAnswers -
+		feedback.incorrectAnswers;
+
 	const data = {
 		labels: [
 			"Correct Answers",
@@ -51,27 +54,26 @@ const FeedbackCard: React.FC<{ feedback: Feedback }> = ({ feedback }) => {
 				data: [
 					feedback.correctAnswers,
 					feedback.incorrectAnswers,
-					feedback.unattemptedQuestions,
+					unattemptedQuestions,
 				],
 				backgroundColor: ["#36a2eb", "#ff6384", "#ffcd56"],
 			},
 		],
 	};
 
+	const giveScore = (score: number) => {
+		return Math.round((score / feedback.totalQuestions) * 100);
+	};
+
 	return (
-		<div className="w-4/5 max-w-3xl bg-white p-6 mt-10 rounded-lg shadow-md">
+		<div className="w-11/12 bg-white p-6 rounded-lg shadow-md my-4">
 			<div className="text-center mb-6">
-				<h1 className="text-2xl font-bold">
-					{feedback.testName} Feedback
-				</h1>
+				<h1 className="text-2xl font-bold">{feedback.testName}</h1>
 			</div>
 			<div className="flex justify-between items-center">
 				<div className="mb-6">
 					<div>
-						<strong>Test Name:</strong> {feedback.testName}
-					</div>
-					<div>
-						<strong>Score:</strong> {feedback.score}%
+						<strong>Score:</strong> {giveScore(feedback.score)}%
 					</div>
 					<div>
 						<strong>Correct Answers:</strong>{" "}
@@ -83,7 +85,7 @@ const FeedbackCard: React.FC<{ feedback: Feedback }> = ({ feedback }) => {
 					</div>
 					<div>
 						<strong>Unattempted Questions:</strong>{" "}
-						{feedback.unattemptedQuestions}
+						{unattemptedQuestions}
 					</div>
 					<div>
 						<strong>Total Questions:</strong>{" "}
@@ -93,7 +95,7 @@ const FeedbackCard: React.FC<{ feedback: Feedback }> = ({ feedback }) => {
 						<strong>Duration:</strong> {feedback.duration}
 					</div>
 				</div>
-				<div className="relative h-96">
+				<div className="relative md:w-72 sm:w-60 xs:w-48">
 					<Doughnut data={data} options={options} />
 				</div>
 			</div>

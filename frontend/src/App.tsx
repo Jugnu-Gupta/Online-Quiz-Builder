@@ -1,6 +1,6 @@
 import { RouterProvider, createBrowserRouter, Outlet } from "react-router-dom";
-import Login from "./pages/Login/Login";
 import Register from "./pages/Register/Register";
+import Login from "./pages/Login/Login";
 import Test from "./pages/Test/Test";
 import Tests from "./pages/Test/Tests";
 import Feedbacks from "./pages/Feedback/Feedbacks";
@@ -9,51 +9,53 @@ import { Toaster } from "react-hot-toast";
 import Home from "./pages/Home/Home";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
+import Protected from "./components/Protected";
 
 const routes = createBrowserRouter([
 	{
 		path: "/",
 		element: (
-			<div className="min-h-[100vh] flex flex-col justify-between">
-				<div>
+			<div className="min-h-[100vh] flex flex-col justify-between bg-background">
+				<div className="">
 					<Navbar />
 					<Outlet />
 				</div>
 				<Footer />
 			</div>
 		),
+
 		// redirect ot login or home page
 		errorElement: <div>404 Not Found</div>,
 		children: [
 			{
 				path: "/",
-				element: <Home />,
+				element: <Protected Component={Home} />,
 			},
 			{
 				path: "tests",
-				element: <Tests />,
+				element: <Protected Component={Tests} />,
 			},
 			{
 				path: "tests/:testId",
-				element: <Test />,
+				element: <Protected Component={Test} />,
 			},
 			{
 				path: "feedbacks",
-				element: <Feedbacks />,
+				element: <Protected Component={Feedbacks} />,
 			},
 			{
 				path: "quizbuilder",
-				element: <QuizBuilder />,
+				element: <Protected Component={QuizBuilder} />,
 			},
 		],
 	},
 	{
 		path: "/register",
-		element: <Login />,
+		element: <Register />,
 	},
 	{
 		path: "/login",
-		element: <Register />,
+		element: <Login />,
 	},
 ]);
 

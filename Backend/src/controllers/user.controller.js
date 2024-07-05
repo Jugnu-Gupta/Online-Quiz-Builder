@@ -2,7 +2,6 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { User } from "../models/user.model.js"
 import { ApiError } from "../utils/apiError.js";
 import { ApiResponse } from "../utils/apiResponse.js";
-import jwt from "jsonwebtoken";
 
 
 const getRefreshToken = async (userId) => {
@@ -22,7 +21,6 @@ const getRefreshToken = async (userId) => {
 
 const registerUser = asyncHandler(async (req, res) => {
     const { fullName, email, password } = req.body;
-    console.log(req.body);
 
     // check is all fields are given.
     if ([fullName, email, password].some((field) => !field?.trim())) {
@@ -30,12 +28,7 @@ const registerUser = asyncHandler(async (req, res) => {
     }
 
     // check if the user exists: email, username.
-    let existedUser = await User.findOne({ email });
-    if (existedUser) {
-        throw new ApiError(409, "User with username already exists");
-    }
-
-    existedUser = await User.findOne({ email });
+    const existedUser = await User.findOne({ email: email });
     if (existedUser) {
         throw new ApiError(409, "User with email already exists");
     }
@@ -112,41 +105,6 @@ const logoutUser = asyncHandler(async (req, res) => {
 });
 
 
-const UpdateUserPassword = asyncHandler(async (req, res) => {
-    const { email, currentPassword, newPassword, confirmPassword } = req.body;
-    if (!email) {
-        throw new ApiError(400, "Email is required");
-    }
-    if (newPassword !== confirmPassword) {
-        throw new ApiError(400, "New password and confirm password do not match");
-    }
-
-    const user = await User.findOne({ email });
-    if (!user) {
-        throw new ApiError(404, "User not found");
-    }
-
-    const isPasswordValid = await user.isPasswordCorrect(currentPassword);
-    if (!isPasswordValid) {
-        throw new ApiError(401, "Incorrect password");
-    }
-
-    if (currentPassword === newPassword) {
-        throw new ApiError(400, "New password cannot be same as old password");
-    }
-
-    const updatedUser = await User.findByIdAndUpdate(user._id,
-        { password: newPassword }, { new: true }
-    )?.select("userName fullName email avatar coverImage isVerified");
-
-
-    return res.status(200).json(
-        new ApiResponse(200, { user: updatedUser },
-            "Password changed successful")
-    );
-});
-
-
 const getCurrentUser = asyncHandler(async (req, res) => {
     return res.status(200).json(
         new ApiResponse(200, { user: req?.user }, "User found")
@@ -154,30 +112,4 @@ const getCurrentUser = asyncHandler(async (req, res) => {
 });
 
 
-// controller to update user account details like fullName, userName
-const updateUserDetails = asyncHandler(async (req, res) => {
-    const { fullName } = req.body;
-    if (!fullName) {
-        throw new ApiError(400, "FullName is required");
-    }
-
-    // update the user profile.
-    const user = await User.findByIdAndUpdate(req?.user?._id,
-        { $set: { fullName } },
-        { new: true }
-    )?.select("-password -refreshToken");
-
-    if (!user) {
-        throw new ApiError(500, "Something went wrong while updating the user profile");
-    }
-
-    return res.status(200).json(
-        new ApiResponse(200, { user }, "User profile updated successfully")
-    );
-});
-
-
-export {
-    registerUser, loginUser, logoutUser, updateUserDetails,
-    UpdateUserPassword, getCurrentUser
-};
+export { registerUser, loginUser, logoutUser, getCurrentUser };

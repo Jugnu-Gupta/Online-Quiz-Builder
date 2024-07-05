@@ -3,12 +3,11 @@ import { Test } from "../models/test.model.js";
 import { Question } from "../models/question.model.js";
 import { ApiError } from "../utils/apiError.js";
 import { ApiResponse } from "../utils/apiResponse.js";
-import mongoose, { isValidObjectId } from "mongoose";
+import { isValidObjectId } from "mongoose";
 
 
 const getTests = asyncHandler(async (req, res) => {
-    console.log("req.user", req.user);
-    const tests = await Test.find().populate("questions");
+    const tests = await Test.find().populate("questions").sort({ createdAt: -1 });
 
     const testsData = tests.map((t) => {
         return {
@@ -25,7 +24,6 @@ const getTests = asyncHandler(async (req, res) => {
             }),
         };
     });
-    console.log("test", testsData);
     if (!testsData?.length) {
         throw new ApiError(404, "test does not exists");
     }
@@ -40,7 +38,6 @@ const getTestById = asyncHandler(async (req, res) => {
     if (!isValidObjectId(testId)) {
         throw new ApiError(400, "Invalid test id");
     }
-    console.log("testId", testId);
 
     const test = await Test.findById(testId).populate("questions").select("-ownerId -__v -updatedAt -createdAt");
 
@@ -53,7 +50,7 @@ const getTestById = asyncHandler(async (req, res) => {
         };
     });
 
-    console.log("test", test);
+    // console.log("test", test);
     if (!test) {
         throw new ApiError(404, "test does not exists");
     }
@@ -65,25 +62,35 @@ const getTestById = asyncHandler(async (req, res) => {
 
 
 const addTest = asyncHandler(async (req, res) => {
-    const { test } = req.body;
+    // console.log("test", req.body);
+    const test = {
+        description: req.body.description,
+        duration: req.body.duration,
+        questions: req.body.questions,
+    };
+    // console.log("test", test);
+
 
     if (!test) {
         throw new ApiError(404, "test is missing");
     }
 
     const newTest = await Test.create({
-        ownerId: user._id,
+        ownerId: req.user._id,
         name: test.description,
         duration: test.duration,
     });
+    // console.log("newTest", newTest);
+
 
     if (!newTest) {
-        throw new ApiError(500, "test not created");
+        throw new ApiError(520, "test not created");
     }
 
     const addQuestions = await Question.insertMany(
         test.questions.map((question) => {
             return {
+                QNo: question.QNo,
                 testId: newTest._id,
                 description: question.text,
                 isMultipleCorrect: question.isMultipleCorrect,

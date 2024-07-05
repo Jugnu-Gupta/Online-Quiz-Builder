@@ -23,11 +23,11 @@ const QuestionForm = ({ question, setQuestions }: QuestionFormProps) => {
 
 	return (
 		<div className="mb-8 p-6 bg-gray-100 rounded-lg shadow-md">
-			<div className="mb-4 flex items-center gap-4">
+			<div className="mb-4 flex items-center gap-4 w-full">
 				{!question.isAnswerKeyMode ? (
 					<>
 						<input
-							className="flex-1 mt-1 p-3 block border rounded-md shadow-sm focus:ring focus:ring-green-300 outline-none"
+							className="flex-1 w-2/3 mt-1 p-3 block border rounded-md shadow-sm focus:ring focus:ring-green-300 outline-none transition duration-300"
 							value={question.text}
 							placeholder="Question"
 							required
@@ -39,7 +39,7 @@ const QuestionForm = ({ question, setQuestions }: QuestionFormProps) => {
 							}
 						/>
 						<select
-							className="mt-1 p-3 border rounded-md shadow-sm focus:ring focus:ring-green-300"
+							className="mt-1 p-3 w-1/3 border rounded-md shadow-sm focus:ring focus:ring-green-300"
 							name="question Type"
 							onChange={(e) =>
 								questionTypeChangeHandler(
@@ -64,7 +64,7 @@ const QuestionForm = ({ question, setQuestions }: QuestionFormProps) => {
 					</>
 				) : (
 					<>
-						<p className="flex-1 mt-1 p-3 border rounded-md shadow-sm focus:ring focus:ring-green-300">
+						<p className="flex-1 mt-1 p-3 my-2 border rounded-md shadow-sm focus:ring focus:ring-green-300">
 							{question.text}
 						</p>
 						<p className="mt-1 p-3 border rounded-md shadow-sm focus:ring focus:ring-green-300">
@@ -132,25 +132,25 @@ const QuestionForm = ({ question, setQuestions }: QuestionFormProps) => {
 				{question.isAnswerKeyMode ? (
 					<>
 						<button
-							className="p-2 bg-yellow-500 text-white rounded-md shadow-md hover:bg-yellow-600 transition duration-300"
+							className="p-2 bg-yellow-500 text-white rounded-md shadow-md hover:bg-yellow-600 transition duration-300 truncate"
 							onClick={() =>
 								answerKeyModeHandler(question.id, false)
 							}>
 							Done
 						</button>
-						<button
-							className="p-2 bg-red-500 text-white rounded-md shadow-md hover:bg-red-600 transition duration-300"
-							onClick={() => deleteQuestionHandler(question.id)}>
-							Delete Question
-						</button>
 					</>
 				) : (
 					<button
-						className="p-2 bg-green-500 text-white rounded-md shadow-md hover:bg-green-600 transition duration-300"
+						className="p-2 bg-green-500 text-white rounded-md shadow-md hover:bg-green-600 transition duration-300 truncate"
 						onClick={() => answerKeyModeHandler(question.id, true)}>
 						Answer Key
 					</button>
 				)}
+				<button
+					className="p-2 bg-red-500 text-white rounded-md shadow-md hover:bg-red-600 transition duration-300 truncate ml-2"
+					onClick={() => deleteQuestionHandler(question.id)}>
+					Delete Question
+				</button>
 			</div>
 		</div>
 	);

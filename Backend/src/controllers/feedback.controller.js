@@ -1,6 +1,5 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { Feedback } from "../models/feedback.model.js";
-import { Test } from "../models/test.model.js";
 import { ApiError } from "../utils/apiError.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import mongoose from "mongoose";
@@ -88,7 +87,7 @@ const analyseFeedback = (feedback) => {
         const selectedOption = answer.selectedOption;
         const question = answer.question;
 
-        const isCorrect = true;
+        let isCorrect = true;
         for (let i = 0; i < question.options.length; i++) {
             if (selectedOption.includes(question.options[i].option) !== question.options[i].isCorrect) {
                 isCorrect = false;
@@ -107,27 +106,20 @@ const analyseFeedback = (feedback) => {
 };
 
 const addFeedback = asyncHandler(async (req, res) => {
-    const { feedback } = req.body; // give response feedback carefully i.e answers.
+    // const { feedback } = req.body; // give response feedback carefully i.e answers.
+    const feedback = {
+        testId: req.body.testId,
+        answers: req.body.answers,
+        duration: req.body.duration,
+    };
+    // console.log("feedback", feedback);
+
     if (!feedback) {
-        throw new ApiError(404, "feedback is missing");
+        throw new ApiError(400, "feedback not found");
     }
 
     const { score, correctAnswers, incorrectAnswers, totalQuestions }
         = analyseFeedback(feedback);
-    // answers: [
-    //     {
-    //         questionId: {
-    //             type: mongoose.Schema.Types.ObjectId,
-    //             ref: "Question",
-    //         },
-    //         selectedOption: [
-    //             {
-    //                 type: String,
-    //                 unique: true,
-    //             }
-    //         ],
-    //     },
-    // ],
 
     const newFeedback = await Feedback.create({
         testId: feedback.testId,
@@ -146,13 +138,13 @@ const addFeedback = asyncHandler(async (req, res) => {
     });
 
 
-    console.log("feedback", feedback);
-    if (!feedback?.length) {
+    // console.log("feedback", newFeedback);
+    if (!newFeedback) {
         throw new ApiError(404, "feedback does not exists");
     }
 
     return res.status(200).json(
-        new ApiResponse(200, test, "feedback fetched successfully")
+        new ApiResponse(200, newFeedback, "feedback fetched successfully")
     );
 });
 

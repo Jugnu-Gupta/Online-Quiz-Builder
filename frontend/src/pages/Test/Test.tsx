@@ -1,14 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { FaLightbulb } from "react-icons/fa";
 import { useParams } from "react-router-dom";
-import { TestType } from "../../model/test.model";
-import axio from "axios";
+import axios from "axios";
 import toast from "react-hot-toast";
-
-// interface RouteParams {
-// 	testId: string;
-// }
+import { twMerge } from "tailwind-merge";
+import { BASE_URL } from "../../contants";
 
 interface Option {
 	option: string;
@@ -23,131 +19,54 @@ interface QuestionType {
 	testId: string;
 }
 
-interface QuestionAndAnsType {
-	questionId: string;
-	selectedOption: string[];
-}
-
-interface TestType {
-	name: string;
-	ownerId: string;
-	questions: QuestionType[] | QuestionAndAnsType[];
-	duration: number;
-}
-
-// const questionSchema = new mongoose.Schema(
-//     {
-//         QNo: {
-//             type: Number,
-//             required: true,
-//         },
-//         description: {
-//             type: String,
-//             required: true,
-//         },
-//         isMultipleCorrect: {
-//             type: Boolean,
-//             required: true,
-//         },
-//         options: [
-//             {
-//                 option: {
-//                     type: String,
-//                     required: true,
-//                     unique: true,
-//                 },
-//                 isCorrect: {
-//                     type: Boolean,
-//                     required: true,
-//                 },
-//             },
-//         ],
-//         testId: {
-//             type: mongoose.Schema.Types.ObjectId,
-//             ref: "Test",
-//         },
-//     },
-//     { timestamps: true }
-// );
-// const testSchema = new mongoose.Schema(
-//     {
-//         name: {
-//             type: String,
-//             required: true,
-//         },
-//         ownerId: {
-//             type: mongoose.Schema.Types.ObjectId,
-//             ref: "User",
-//         },
-//         questions: [
-//             {
-//                 type: mongoose.Schema.Types.ObjectId,
-//                 ref: "Question",
-//             },
-//         ],
-//         duration: {
-//             type: Number,
-//             required: true,
-//         },
-//     },
-//     { timestamps: true }
-// );
-
-const questions: QuestionType[] = [
-	{
-		_id: "1",
-		description: "Google was founded in what year?",
-		options: [
-			{ option: "1997", isCorrect: false },
-			{ option: "1998", isCorrect: false },
-			{ option: "1999", isCorrect: false },
-			{ option: "2000", isCorrect: true },
-		],
-		isMultipleCorrect: false,
-	},
-	{
-		_id: "2",
-		description: "Select the prime numbers:",
-		options: [
-			{ option: "2", isCorrect: true },
-			{ option: "3", isCorrect: true },
-			{ option: "4", isCorrect: false },
-			{ option: "5", isCorrect: true },
-		],
-		isMultipleCorrect: true,
-	},
-	// Add more questions here
-];
-
 const QuizPage: React.FC = () => {
 	const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
-	const [timeLeft, setTimeLeft] = useState<number>(300); // 5 minutes in seconds
+	const [timeLeft, setTimeLeft] = useState<number>(60); // in seconds
 	const [selectedAnswers, setSelectedAnswers] = useState<Array<string[]>>([
 		[],
 	]);
-	const [test, setTest] = useState<TestType>();
-
-	// const [feedback, setFeedback] = useState<TestType | null>(null);
+	const [currentQuestion, setCurrentQuestion] = useState<QuestionType | null>(
+		null
+	);
+	const [questions, setQuestions] = useState<QuestionType[]>([]);
+	const [duration, setDuration] = useState<number>(0);
+	const [testName, setTestName] = useState<string>("");
 	const { testId } = useParams();
 	const navigate = useNavigate();
 
 	useEffect(() => {
-		axio.get(`http://localhost:4000/api/v1/tests/${testId}`)
-			.then((res) => {
+		const fetchTests = async () => {
+			try {
+				const token = localStorage.getItem("token");
+				const res = await axios.get(
+					`${BASE_URL}/api/v1/tests/${testId}`,
+					{
+						headers: {
+							"Content-Type": "application/json",
+							Authorization: `Bearer ${token}`,
+						},
+					}
+				);
 				if (res.status === 200) {
-					setTest(res.data);
-					setTimeLeft(res.data.duration);
-				} else {
-					toast.error("Failed to fetch test data");
-				}
-				console.log(res);
-			})
-			.catch((err) => {
-				console.log(err);
-				toast.error("Failed to fetch test data");
-			});
+					const data = res.data.data;
+					// console.log("Response:", data);
 
-		console.log(test);
+					setSelectedAnswers(
+						new Array(data.questions.length).fill([])
+					);
+					setQuestions(data.questions);
+					setDuration(data.duration);
+					setTestName(data.name);
+					setTimeLeft(data.duration * 60);
+					setCurrentQuestion(data?.questions?.[currentQuestionIndex]);
+				} else {
+					toast.error("Failed to fetch tests");
+				}
+			} catch (error) {
+				toast.error("Failed to fetch tests");
+			}
+		};
+		fetchTests();
 	}, []);
 
 	useEffect(() => {
@@ -187,29 +106,55 @@ const QuizPage: React.FC = () => {
 
 	const handleNext = () => {
 		if (currentQuestionIndex < questions.length - 1) {
+			setCurrentQuestion(questions[currentQuestionIndex + 1]);
 			setCurrentQuestionIndex(currentQuestionIndex + 1);
 		}
 	};
 
 	const handlePrev = () => {
 		if (currentQuestionIndex > 0) {
+			setCurrentQuestion(questions[currentQuestionIndex - 1]);
 			setCurrentQuestionIndex(currentQuestionIndex - 1);
 		}
 	};
 
 	const saveAnswers = async () => {
-		// set data in feedback;
-		// and post it.
+		interface Answer {
+			question: QuestionType;
+			selectedOption: string[];
+		}
 
-		console.log("Saving answers:", selectedAnswers);
+		const answers: Answer[] = [];
+		for (let i = 0; i < questions.length; i++) {
+			const question = questions[i];
+			const selectedOption = selectedAnswers[i];
+			answers.push({
+				question: question,
+				selectedOption,
+			});
+		}
 
-		// Add logic to save answers (e.g., send them to a server or save them to local storage)
-	};
+		const feedback = {
+			testId,
+			duration,
+			answers,
+		};
 
-	const handleQuit = () => {
-		saveAnswers();
+		// Save answers to the server
+		const token = localStorage.getItem("token");
+		const res = await axios.post(`${BASE_URL}/api/v1/feedbacks`, feedback, {
+			headers: {
+				"Content-Type": "application/json",
+				Authorization: `Bearer ${token}`,
+			},
+		});
 
-		navigate("/feedbacks"); // Redirect to feeback page.
+		if (res.status === 200) {
+			toast.success("Answers saved successfully");
+		} else {
+			toast.error("Failed to save answers");
+		}
+		navigate("/");
 	};
 
 	const formatTime = (seconds: number): string => {
@@ -218,58 +163,83 @@ const QuizPage: React.FC = () => {
 		return `${minutes}:${secs < 10 ? "0" : ""}${secs}`;
 	};
 
-	const currentQuestion = questions[currentQuestionIndex];
-
 	return (
-		<div className="w-1/2 mx-auto p-4 text-center font-sans">
-			<div className="flex justify-between items-center mb-4">
-				<div className="text-2xl font-bold">Free Quiz Mode</div>
-				<div className="flex items-center">
-					<div className="mr-4">
+		<div className="w-4/5 max-w-3xl mx-auto p-4 text-center font-sans">
+			<div className="bg-white rounded-lg">
+				<div className="flex justify-between items-center flex-col mt-4 py-4">
+					<div className="text-2xl font-bold pb-3">
+						Quiz Mode {testName && `: ${testName}`}
+					</div>
+					<div className="flex items-center justify-end w-full">
+						<div className="flex items-center font-bold mr-8 text-lg">
+							Timer: {formatTime(timeLeft)} min
+						</div>
+					</div>
+				</div>
+				<div className="mb-4">
+					<h2 className="font-bold text-xl text-start mx-8">
+						Q{currentQuestionIndex + 1}
+						{". "}
+						{currentQuestion?.description}
+						{currentQuestion?.isMultipleCorrect
+							? " Multiple answers"
+							: ""}
+					</h2>
+					<div className="flex flex-col my-6">
+						{currentQuestion?.options.map((option, index) => (
+							<div
+								key={index}
+								className="text-start ml-8 font-bold">
+								<span className="text-lg">{index + 1}. </span>
+								<button
+									className={`bg-blue-500 text-white border-none py-3 px-6 rounded-md m-2 cursor-pointer w-48 hover:bg-blue-700 ${
+										selectedAnswers[
+											currentQuestionIndex
+										].includes(option.option)
+											? "bg-blue-700"
+											: ""
+									}`}
+									onClick={() =>
+										handleOptionClick(option.option)
+									}>
+									{option.option}
+								</button>
+							</div>
+						))}
+					</div>
+					<div className="text-end mr-8 text-lg">
 						{currentQuestionIndex + 1} of {questions.length}
 					</div>
-					<div className="flex items-center">
-						<FaLightbulb className="mr-2" /> {formatTime(timeLeft)}
-					</div>
 				</div>
-			</div>
-			<div className="mb-4">
-				<h2>{currentQuestion.description}</h2>
-				<div className="flex flex-wrap justify-between">
-					{currentQuestion.options.map((option, index) => (
-						<button
-							key={index}
-							className={`bg-blue-500 text-white border-none py-3 px-6 rounded-md m-2 cursor-pointer w-48 hover:bg-blue-700 ${
-								selectedAnswers[currentQuestionIndex].includes(
-									option.option
-								)
-									? "bg-blue-700"
-									: ""
-							}`}
-							onClick={() => handleOptionClick(option.option)}>
-							{option.option}
-						</button>
-					))}
+				<div className="mt-4">
+					<button
+						onClick={handlePrev}
+						disabled={currentQuestionIndex === 0}
+						className={twMerge(
+							"bg-green-600 text-white border-none py-2 px-4 rounded-md m-2 cursor-pointer hover:bg-green-700 ",
+							currentQuestionIndex === 0
+								? "opacity-75"
+								: "opacity-100"
+						)}>
+						Previous
+					</button>
+					<button
+						onClick={handleNext}
+						disabled={currentQuestionIndex === questions.length - 1}
+						className={twMerge(
+							"bg-green-600 text-white border-none py-2 px-4 rounded-md m-2 cursor-pointer hover:bg-green-700 ",
+							currentQuestionIndex === questions.length - 1
+								? "opacity-75"
+								: "opacity-100"
+						)}>
+						Next
+					</button>
+					<button
+						onClick={saveAnswers}
+						className="bg-gray-600 text-white border-none py-2 px-4 rounded-md m-2 cursor-pointer hover:bg-gray-700">
+						Submit
+					</button>
 				</div>
-			</div>
-			<div className="mt-4">
-				<button
-					onClick={handlePrev}
-					disabled={currentQuestionIndex === 0}
-					className="bg-green-600 text-white border-none py-2 px-4 rounded-md m-2 cursor-pointer hover:bg-green-700">
-					Previous
-				</button>
-				<button
-					onClick={handleNext}
-					disabled={currentQuestionIndex === questions.length - 1}
-					className="bg-green-600 text-white border-none py-2 px-4 rounded-md m-2 cursor-pointer hover:bg-green-700">
-					Next
-				</button>
-				<button
-					onClick={handleQuit}
-					className="bg-gray-600 text-white border-none py-2 px-4 rounded-md m-2 cursor-pointer hover:bg-gray-700">
-					Quit
-				</button>
 			</div>
 		</div>
 	);

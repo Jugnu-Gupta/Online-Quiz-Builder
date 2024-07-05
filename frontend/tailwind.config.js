@@ -15,8 +15,13 @@ export default {
         'background-lightest': '#616161',
       },
     },
-  },
-  plugins: [],
+    screens: {
+      'xs': { min: '0px', max: '639px' },
+      'sm': { min: '640px', max: '767px' },
+      'md': { min: '768px' },
+    },
+    plugins: [],
+  }
 }
 
 
