@@ -52,10 +52,12 @@ const routes = createBrowserRouter([
 	{
 		path: "/register",
 		element: <Register />,
+		errorElement: <div>404 Not Found</div>,
 	},
 	{
 		path: "/login",
 		element: <Login />,
+		errorElement: <div>404 Not Found</div>,
 	},
 ]);
 
