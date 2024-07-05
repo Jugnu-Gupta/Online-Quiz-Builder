@@ -1,12 +1,16 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { Feedback } from "../models/feedback.model.js";
+import { Test } from "../models/test.model.js";
 import { ApiError } from "../utils/apiError.js";
 import { ApiResponse } from "../utils/apiResponse.js";
+import mongoose from "mongoose";
 
 
 const getFeedbacks = asyncHandler(async (req, res) => {
+    console.log("req.user", req.user);
+
     const feedback = await Feedback.aggregate([
-        { $match: { userId: req.user._id } },
+        { $match: { userId: new mongoose.Types.ObjectId(req.user._id) } },
         { $unwind: "$answers" },
         {
             $lookup: {
@@ -35,22 +39,42 @@ const getFeedbacks = asyncHandler(async (req, res) => {
                 updatedAt: { $first: "$updatedAt" },
                 answers: {
                     $push: {
-                        questionId: "$answers.questionId",
+                        // questionId: "$answers.questionId",
                         selectedOption: "$answers.selectedOption",
                         questionDetails: "$answers.questionDetails"
                     }
                 }
             }
-        }
+        },
+        {
+            $lookup: {
+                from: "tests",
+                localField: "testId",
+                foreignField: "_id",
+                as: "testDetails"
+            }
+        },
+        { $addFields: { testName: { $arrayElemAt: ["$testDetails.name", 0] } } },
+        { $sort: { createdAt: -1 } },
+        {
+            $project: {
+                testName: 1,
+                score: 1,
+                correctAnswers: 1,
+                incorrectAnswers: 1,
+                totalQuestions: 1,
+                duration: 1,
+            }
+        },
     ]);
 
     console.log("feedback", feedback);
-    if (!feedback?.length) {
+    if (!feedback) {
         throw new ApiError(404, "feedback does not exists");
     }
 
     return res.status(200).json(
-        new ApiResponse(200, test, "feedback fetched successfully")
+        new ApiResponse(200, feedback, "feedback fetched successfully")
     );
 });
 

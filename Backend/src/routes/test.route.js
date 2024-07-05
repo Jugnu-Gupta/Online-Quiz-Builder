@@ -1,4 +1,4 @@
-import { getTests, addTest } from '../controllers/test.controller.js';
+import { getTests, getTestById, addTest } from '../controllers/test.controller.js';
 import { verifyJWT } from '../middlewares/auth.middleware.js';
 import { Router } from 'express';
 const router = Router();
@@ -8,6 +8,9 @@ const router = Router();
 router.route('/')
     .get(verifyJWT, getTests)
     .post(verifyJWT, addTest);
+
+router.route('/:testId')
+    .get(verifyJWT, getTestById);
 
 
 export default router;

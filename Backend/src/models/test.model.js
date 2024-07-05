@@ -24,4 +24,4 @@ const testSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
-export const Test = mongoose.model("Question", testSchema);
+export const Test = mongoose.model("Test", testSchema);

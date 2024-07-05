@@ -1,6 +1,6 @@
 import {
-    loginUser, logoutUser, registerUser, refreshAccessToken,
-    UpdateUserPassword, getCurrentUser, updateUserDetails,
+    loginUser, logoutUser, registerUser, updateUserDetails,
+    UpdateUserPassword, getCurrentUser
 } from "../controllers/user.controller.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 import { Router } from "express";
@@ -13,9 +13,6 @@ router.route("/register").
 
 // Login user
 router.route("/login").post(loginUser);
-
-// Refresh access token
-router.route("/refresh-Token").post(refreshAccessToken);
 
 // Logout user (secured route)
 router.route("/logout").post(verifyJWT, logoutUser);

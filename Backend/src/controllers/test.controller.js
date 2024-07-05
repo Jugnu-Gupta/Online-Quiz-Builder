@@ -1,26 +1,65 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
-import { Test } from "../models/test.model.js"
+import { Test } from "../models/test.model.js";
+import { Question } from "../models/question.model.js";
 import { ApiError } from "../utils/apiError.js";
 import { ApiResponse } from "../utils/apiResponse.js";
+import mongoose, { isValidObjectId } from "mongoose";
 
 
 const getTests = asyncHandler(async (req, res) => {
-    const { userName } = req.params;
-    if (!userName) {
-        throw new ApiError(404, "Username is missing");
-    }
+    console.log("req.user", req.user);
+    const tests = await Test.find().populate("questions");
 
-    const test = await Test.aggregate([
-        { $lookup: { from: "Question", localField: "_id", foreignField: "testId", as: "questions" } },
-    ]);
-
-    console.log("test", test);
-    if (!test?.length) {
+    const testsData = tests.map((t) => {
+        return {
+            _id: t._id,
+            name: t.name,
+            duration: t.duration,
+            questions: t.questions.map((q) => {
+                return {
+                    QNo: q.QNo,
+                    description: q.description,
+                    isMultipleCorrect: q.isMultipleCorrect,
+                    options: q.options,
+                };
+            }),
+        };
+    });
+    console.log("test", testsData);
+    if (!testsData?.length) {
         throw new ApiError(404, "test does not exists");
     }
 
     return res.status(200).json(
-        new ApiResponse(200, test, "test fetched successfully")
+        new ApiResponse(200, testsData, "test fetched successfully")
+    );
+});
+
+const getTestById = asyncHandler(async (req, res) => {
+    const { testId } = req.params;
+    if (!isValidObjectId(testId)) {
+        throw new ApiError(400, "Invalid test id");
+    }
+    console.log("testId", testId);
+
+    const test = await Test.findById(testId).populate("questions").select("-ownerId -__v -updatedAt -createdAt");
+
+    const questions = test.questions.map((q) => {
+        return {
+            QNo: q.QNo,
+            description: q.description,
+            isMultipleCorrect: q.isMultipleCorrect,
+            options: q.options,
+        };
+    });
+
+    console.log("test", test);
+    if (!test) {
+        throw new ApiError(404, "test does not exists");
+    }
+
+    return res.status(200).json(
+        new ApiResponse(200, { name: test.name, duration: test.duration, questions }, "test fetched successfully")
     );
 });
 
@@ -61,9 +100,20 @@ const addTest = asyncHandler(async (req, res) => {
         throw new ApiError(500, "Questions not added");
     }
 
+    const updateTest = await Test.findByIdAndUpdate(
+        newTest._id,
+        {
+            $set: { questions: addQuestions.map((q) => q._id), }
+        },
+        { new: true }
+    );
+    if (!updateTest) {
+        throw new ApiError(500, "Questions not added");
+    }
+
     return res.status(200).json(
-        new ApiResponse(200, { test, addQuestions }, "Test created successfully")
+        new ApiResponse(200, { updateTest }, "Test created successfully")
     );
 });
 
-export { getTests, addTest };
+export { getTests, getTestById, addTest };
