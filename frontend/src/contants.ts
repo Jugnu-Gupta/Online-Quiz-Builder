@@ -1,1 +1,1 @@
-export const BASE_URL = "http://online-quiz-builder-api.vercel.app";
+export const BASE_URL = "https://online-quiz-builder-api.vercel.app";
