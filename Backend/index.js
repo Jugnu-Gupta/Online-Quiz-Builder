@@ -5,11 +5,11 @@ import connectDB from "./src/db/connectDB.js";
 import { app } from "./src/app.js";
 
 
-const port = process.env.PORT || 8000;
+const PORT = process.env.PORT || 8000;
 connectDB()
     .then(() => {
-        app.listen(port, () => {
-            console.log(`Server is running at port: ${port}`);
+        app.listen(PORT, () => {
+            console.log(`Server is running at port: ${PORT}`);
         })
     })
     .catch((err) => {
