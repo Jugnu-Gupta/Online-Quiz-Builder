@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { RouterProvider, createBrowserRouter, Outlet } from "react-router-dom";
 import Register from "./pages/Register/Register";
 import Login from "./pages/Login/Login";
 import Test from "./pages/Test/Test";
@@ -7,42 +7,65 @@ import Feedbacks from "./pages/Feedback/Feedbacks";
 import QuizBuilder from "./pages/QuizBuilder/QuizBuilder";
 import { Toaster } from "react-hot-toast";
 import Home from "./pages/Home/Home";
+import Navbar from "./components/Navbar";
+import Footer from "./components/Footer";
 import Protected from "./components/Protected";
-import MainLayout from "./components/MainLayout";
+
+const routes = createBrowserRouter([
+	{
+		path: "/",
+		element: (
+			<div className="min-h-[100vh] flex flex-col justify-between bg-background">
+				<div className="">
+					<Navbar />
+					<Outlet />
+				</div>
+				<Footer />
+			</div>
+		),
+
+		// redirect ot login or home page
+		errorElement: <div>404 Not Found</div>,
+		children: [
+			{
+				path: "/",
+				element: <Protected Component={Home} />,
+			},
+			{
+				path: "tests",
+				element: <Protected Component={Tests} />,
+			},
+			{
+				path: "tests/:testId",
+				element: <Protected Component={Test} />,
+			},
+			{
+				path: "feedbacks",
+				element: <Protected Component={Feedbacks} />,
+			},
+			{
+				path: "quizbuilder",
+				element: <Protected Component={QuizBuilder} />,
+			},
+		],
+	},
+	{
+		path: "/register",
+		element: <Register />,
+		errorElement: <div>404 Not Found</div>,
+	},
+	{
+		path: "/login",
+		element: <Login />,
+		errorElement: <div>404 Not Found</div>,
+	},
+]);
 
 function App() {
 	return (
 		<div>
 			<Toaster />
-			<BrowserRouter>
-				<Routes>
-					<Route path="/" element={<MainLayout />}>
-						<Route
-							path="/"
-							element={<Protected Component={Home} />}
-						/>
-						<Route
-							path="tests"
-							element={<Protected Component={Tests} />}
-						/>
-						<Route
-							path="tests/:testId"
-							element={<Protected Component={Test} />}
-						/>
-						<Route
-							path="feedbacks"
-							element={<Protected Component={Feedbacks} />}
-						/>
-						<Route
-							path="quizbuilder"
-							element={<Protected Component={QuizBuilder} />}
-						/>
-					</Route>
-					<Route path="/register" element={<Register />} />
-					<Route path="/login" element={<Login />} />
-					<Route path="*" element={<div>404 Not Found</div>} />
-				</Routes>
-			</BrowserRouter>
+			<RouterProvider router={routes} />
 		</div>
 	);
 }
