@@ -8,7 +8,9 @@ function Navbar() {
 
 	const logoutHandler = async () => {
 		const token = localStorage.getItem("token");
-		const res = await axios.post(`${BASE_URL}/api/v1/users/logout`, {
+		const res = await axios({
+			method: "post",
+			url: `${BASE_URL}/api/v1/users/logout`,
 			headers: {
 				"Content-Type": "application/json",
 				Authorization: `Bearer ${token}`,
